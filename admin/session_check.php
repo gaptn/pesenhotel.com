@@ -11,5 +11,5 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 }
 
 // Include database connection
-include '../config/database.php';
+include '../config/db.php';
 ?>

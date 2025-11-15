@@ -4,11 +4,11 @@ session_start();
 
 // Kalau sudah login, redirect ke dashboard
 if (isset($_SESSION['admin_logged_in'])) {
-    header('Location: index.php');
+    header('Location: indexadm.php');
     exit;
 }
 
-include '../config/database.php';
+include '../config/db.php';
 
 $error = '';
 
@@ -22,13 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (mysqli_num_rows($result) == 1) {
         $admin = mysqli_fetch_assoc($result);
         
-        // Set session
+        // Set session (tandai sebagai logged in supaya halaman admin mengizinkan akses)
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['admin_id'] = isset($admin['id']) ? $admin['id'] : 1;
         $_SESSION['admin_username'] = $admin['username'];
-        $_SESSION['admin_nama'] = $admin['nama_lengkap'];
+        $_SESSION['admin_nama'] = isset($admin['nama_lengkap']) ? $admin['nama_lengkap'] : $admin['username'];
         
-        header('Location: index.php');
+        header('Location: indexadm.php');
         exit;
     } else {
         $error = 'Username atau password salah!';
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - Hotel Malang</title>
+    <title>Login Admin - pesenhotel.com</title>
     <style>
         * {
             margin: 0;
@@ -135,14 +135,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 14px;
         }
         
-        .info-box {
-            background: #f0f7ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 5px;
-            font-size: 13px;
-            color: #555;
+        .btn-back {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
         }
         
         .info-box strong {
@@ -154,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="login-container">
         <div class="login-header">
             <h1>🏨 Admin Panel</h1>
-            <p>Hotel Malang Management System</p>
+            <p>pesenhotel.com Management System</p>
         </div>
         
         <?php if ($error): ?>
@@ -177,12 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button type="submit" class="btn-login">
                 Login
             </button>
+
+            <button type="button" class="btn-back" onclick="window.location.href='../index.php'">
+                Kembali ke Website
+            </button>
         </form>
-        
-        <div class="info-box">
-            <strong>Default Login:</strong><br>
-            Username: <code>admin</code><br>
-            Password: <code>admin123</code>
+            
         </div>
     </div>
 </body>

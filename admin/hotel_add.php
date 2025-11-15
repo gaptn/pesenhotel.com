@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
     <nav class="navbar">
         <h1>➕ Tambah Hotel Baru</h1>
-        <a href="index.php">← Kembali ke Dashboard</a>
+        <a href="indexadm.php">← Kembali ke Dashboard</a>
     </nav>
     
     <div class="container">

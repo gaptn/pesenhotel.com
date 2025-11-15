@@ -217,7 +217,7 @@ $avg_rating = round(mysqli_fetch_assoc($result_avg)['avg_rating'], 1);
                 <a href="hotel_list.php" class="action-btn primary">
                     📋 Kelola Data Hotel
                 </a>
-                <a href="../index.php" target="_blank" class="action-btn secondary">
+                <a href="../index.php"  class="action-btn primary">
                     🌐 Lihat Website
                 </a>
             </div>
