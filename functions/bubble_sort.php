@@ -6,11 +6,16 @@
  * Kompleksitas: O(n²)
  * 
  * @param array $hotels - Array hotel
- * @param string $sortBy - Kolom yang dijadikan acuan (rating, price, hotel)
+ * @param string $sortBy - Kolom yang dijadikan acuan (rating, price, hotel, star)
  * @param string $order - ASC atau DESC
  * @return array - Array hotel yang sudah terurut + info sorting
  */
 function bubbleSortHotels($hotels, $sortBy = 'rating', $order = 'DESC') {
+    // Validasi input
+    if (!is_array($hotels)) {
+        $hotels = [];
+    }
+    
     $n = count($hotels);
     $swapCount = 0;
     $comparisons = 0;
@@ -28,25 +33,37 @@ function bubbleSortHotels($hotels, $sortBy = 'rating', $order = 'DESC') {
         ];
     }
     
+    // Bubble Sort dengan optimasi
     for ($i = 0; $i < $n - 1; $i++) {
         $swapped = false;
         $passes++;
         
         for ($j = 0; $j < $n - $i - 1; $j++) {
             $comparisons++;
-            $condition = false;
             
-            // Tentukan kondisi sorting berdasarkan order
+            // Ambil nilai yang akan dibandingkan
+            $value1 = $hotels[$j][$sortBy];
+            $value2 = $hotels[$j + 1][$sortBy];
+            
+            // Konversi ke float jika sorting rating atau price
+            if ($sortBy == 'rating' || $sortBy == 'price') {
+                $value1 = floatval($value1);
+                $value2 = floatval($value2);
+            }
+            
+            // Tentukan kondisi swap berdasarkan order
+            $shouldSwap = false;
+            
             if ($order == 'DESC') {
-                // Descending: nilai besar ke kecil
-                $condition = $hotels[$j][$sortBy] < $hotels[$j + 1][$sortBy];
+                // Descending: nilai besar ke kecil (4.8 → 4.7 → 4.6)
+                $shouldSwap = ($value1 < $value2);
             } else {
-                // Ascending: nilai kecil ke besar
-                $condition = $hotels[$j][$sortBy] > $hotels[$j + 1][$sortBy];
+                // Ascending: nilai kecil ke besar (180k → 250k → 300k)
+                $shouldSwap = ($value1 > $value2);
             }
             
             // Lakukan swap jika kondisi terpenuhi
-            if ($condition) {
+            if ($shouldSwap) {
                 $temp = $hotels[$j];
                 $hotels[$j] = $hotels[$j + 1];
                 $hotels[$j + 1] = $temp;
@@ -88,9 +105,12 @@ function bubbleSortWithSteps($hotels, $sortBy = 'rating', $order = 'DESC') {
     
     for ($i = 0; $i < $n - 1; $i++) {
         for ($j = 0; $j < $n - $i - 1; $j++) {
+            $value1 = floatval($hotels[$j][$sortBy]);
+            $value2 = floatval($hotels[$j + 1][$sortBy]);
+            
             $condition = ($order == 'DESC') 
-                ? $hotels[$j][$sortBy] < $hotels[$j + 1][$sortBy]
-                : $hotels[$j][$sortBy] > $hotels[$j + 1][$sortBy];
+                ? ($value1 < $value2)
+                : ($value1 > $value2);
             
             if ($condition) {
                 // Swap
@@ -106,6 +126,8 @@ function bubbleSortWithSteps($hotels, $sortBy = 'rating', $order = 'DESC') {
                     'swapped' => true,
                     'element1' => $temp['hotel'],
                     'element2' => $hotels[$j]['hotel'],
+                    'value1' => $value1,
+                    'value2' => $value2,
                     'array_state' => array_map(function($h) use ($sortBy) {
                         return [
                             'hotel' => $h['hotel'],
@@ -145,10 +167,13 @@ function quickSortHotels($hotels, $sortBy = 'rating', $order = 'DESC') {
     
     // PHP memiliki usort yang menggunakan Quick Sort
     usort($hotels, function($a, $b) use ($sortBy, $order) {
+        $valueA = floatval($a[$sortBy]);
+        $valueB = floatval($b[$sortBy]);
+        
         if ($order == 'DESC') {
-            return $b[$sortBy] <=> $a[$sortBy];
+            return $valueB <=> $valueA;
         } else {
-            return $a[$sortBy] <=> $b[$sortBy];
+            return $valueA <=> $valueB;
         }
     });
     
@@ -193,6 +218,7 @@ function compareSort($hotels, $sortBy = 'rating', $order = 'DESC') {
         ],
         'faster' => $time_bubble < $time_quick ? 'Bubble Sort' : 'Quick Sort',
         'time_difference' => abs($time_bubble - $time_quick),
+        'speed_ratio' => $time_bubble > 0 ? round($time_quick / $time_bubble * 100, 2) : 0,
         'data_count' => count($hotels)
     ];
 }
@@ -208,12 +234,15 @@ function compareSort($hotels, $sortBy = 'rating', $order = 'DESC') {
 function multiLevelSort($hotels, $sortFields) {
     usort($hotels, function($a, $b) use ($sortFields) {
         foreach ($sortFields as $field => $order) {
+            $valueA = floatval($a[$field]);
+            $valueB = floatval($b[$field]);
+            
             $comparison = 0;
             
             if ($order == 'DESC') {
-                $comparison = $b[$field] <=> $a[$field];
+                $comparison = $valueB <=> $valueA;
             } else {
-                $comparison = $a[$field] <=> $b[$field];
+                $comparison = $valueA <=> $valueB;
             }
             
             // Jika tidak sama, return comparison
@@ -229,5 +258,27 @@ function multiLevelSort($hotels, $sortFields) {
         'data' => $hotels,
         'sort_fields' => $sortFields
     ];
+}
+
+/**
+ * Validation helper untuk memastikan data valid sebelum sorting
+ * 
+ * @param array $hotels - Array hotel
+ * @param string $sortBy - Kolom sorting
+ * @return bool - Valid atau tidak
+ */
+function validateSortData($hotels, $sortBy) {
+    if (empty($hotels)) {
+        return false;
+    }
+    
+    // Cek apakah kolom sorting ada di setiap hotel
+    foreach ($hotels as $hotel) {
+        if (!isset($hotel[$sortBy])) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 ?>
