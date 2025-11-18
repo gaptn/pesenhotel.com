@@ -6,6 +6,7 @@ include 'functions/bubble_sort.php';
 // Ambil filter dari user
 $star_filter = isset($_GET['star']) ? clean_input($_GET['star']) : '';
 $sort_by = isset($_GET['sort']) ? clean_input($_GET['sort']) : 'rating';
+$sort_order = isset($_GET['order']) ? clean_input($_GET['order']) : 'DESC';
 $search = isset($_GET['search']) ? clean_input($_GET['search']) : '';
 
 // Query database
@@ -22,8 +23,15 @@ if ($search != '') {
 $result = mysqli_query($conn, $query);
 $hotels = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
+// Tentukan order berdasarkan pilihan sort
+if ($sort_by == 'price') {
+    $sort_order = 'ASC'; // Harga termurah ke termahal
+} else {
+    $sort_order = 'DESC'; // Rating tertinggi ke terendah
+}
+
 // Sorting menggunakan Bubble Sort
-$sorted_result = bubbleSortHotels($hotels, $sort_by, 'DESC');
+$sorted_result = bubbleSortHotels($hotels, $sort_by, $sort_order);
 $hotels = $sorted_result['data'];
 ?>
 
@@ -113,31 +121,65 @@ $hotels = $sorted_result['data'];
         
         .search-form {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr auto;
             gap: 15px;
+            align-items: center;
         }
         
-        .form-control {
+        .search-form .form-control {
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
+            transition: all 0.3s;
+            height: 44px;
         }
         
-        .form-control:focus {
+        .search-form .form-control:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-group select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 44px;
+            min-width: 200px;
+        }
+        
+        .filter-group select:hover {
+            border-color: #667eea;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
         .btn-search {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 1px 90px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
+            height: 44px;
+        
         }
         
         .btn-search:hover {
@@ -157,16 +199,53 @@ $hotels = $sorted_result['data'];
             justify-content: space-between;
             align-items: center;
             margin: 30px 0 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
         .results-info h2 {
             color: #333;
         }
         
-        .sort-info {
+       .sort-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+        
+        .sort-label {
             color: #666;
             font-size: 14px;
         }
+        
+        .sort-stats {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        /* SORTING INDICATOR */
+        .sort-indicator {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sort-indicator .icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+    
+
         
         /* HOTEL GRID */
         .hotel-grid {
@@ -183,6 +262,7 @@ $hotels = $sorted_result['data'];
             box-shadow: 0 2px 15px rgba(0,0,0,0.1);
             transition: all 0.3s;
             cursor: pointer;
+            position: relative;
         }
         
         .hotel-card:hover {
@@ -282,6 +362,14 @@ $hotels = $sorted_result['data'];
             font-weight: normal;
         }
         
+        .hotel-price.highlight {
+            color: #667eea;
+            background: #f0f4ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
         .hotel-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -362,12 +450,29 @@ $hotels = $sorted_result['data'];
                 grid-template-columns: 1fr;
             }
             
+            .filter-group {
+                display: flex;;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+                padding: 10px 10px
+            }
+            
             .hero h1 {
                 font-size: 32px;
             }
             
             .hotel-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .results-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .sort-info {
+                align-items: center;
             }
         }
     </style>
@@ -379,7 +484,8 @@ $hotels = $sorted_result['data'];
             <div class="logo">🏨 pesenhotel.com</div>
             <nav>
                 <a href="index.php">Home</a>
-                <a href="#hotels">Hotel</a>
+                <a href="search_hotel.php">Search</a>
+                <a href="demo_algorithm.php">Demo</a>
                 <a href="admin/login.php">Admin</a>
             </nav>
         </div>
@@ -397,34 +503,52 @@ $hotels = $sorted_result['data'];
             <form method="GET" action="" class="search-form">
                 <input type="text" name="search" class="form-control" 
                        placeholder="🔍 Cari nama hotel..." 
-                       value="<?php echo $search; ?>">
+                       value="<?php echo htmlspecialchars($search); ?>">
                 
-                <select name="star" class="form-control">
-                    <option value="">Semua Bintang</option>
-                    <option value="5" <?php echo $star_filter == '5' ? 'selected' : ''; ?>>⭐⭐⭐⭐⭐ Bintang 5</option>
-                    <option value="4" <?php echo $star_filter == '4' ? 'selected' : ''; ?>>⭐⭐⭐⭐ Bintang 4</option>
-                    <option value="3" <?php echo $star_filter == '3' ? 'selected' : ''; ?>>⭐⭐⭐ Bintang 3</option>
-                    <option value="2" <?php echo $star_filter == '2' ? 'selected' : ''; ?>>⭐⭐ Bintang 2</option>
-                    <option value="1" <?php echo $star_filter == '1' ? 'selected' : ''; ?>>⭐ Bintang 1</option>
-                </select>
-                
-                <select name="sort" class="form-control">
-                    <option value="rating" <?php echo $sort_by == 'rating' ? 'selected' : ''; ?>>Rating Tertinggi</option>
-                    <option value="price" <?php echo $sort_by == 'price' ? 'selected' : ''; ?>>Harga Termurah</option>
-                </select>
+                <div class="filter-group">
+                    <select name="sort" class="form-control">
+                        <option value="rating" <?php echo $sort_by == 'rating' ? 'selected' : ''; ?>>⭐ Rating Tertinggi</option>
+                        <option value="price" <?php echo $sort_by == 'price' ? 'selected' : ''; ?>>💰 Harga Terendah</option>
+                        <option value="star" <?php echo $sort_by == 'star' ? 'selected' : ''; ?>>🌟 Kelas Bintang</option>
+                    </select>
+                </div>
                 
                 <button type="submit" class="btn-search">Cari</button>
             </form>
         </div>
     </div>
     
+    <!-- SORTING INDICATOR -->
+    <?php if (count($hotels) > 0): ?>
+        <div class="container">
+            <div class="sort-indicator">
+                <?php if ($sort_by == 'price'): ?>
+                    <span class="icon">💰</span>
+                    Diurutkan dari <strong>Harga Termurah</strong> 
+                <?php elseif ($sort_by == 'star'): ?>
+                    <span class="icon">🌟</span>
+                    Diurutkan dari <strong>Bintang Terbanyak</strong>
+                <?php else: ?>
+                    <span class="icon">⭐</span>
+                    Diurutkan dari <strong>Rating Tertinggi</strong> 
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    
     <!-- RESULTS INFO -->
     <div class="container">
         <div class="results-info">
             <h2 id="hotels">Daftar Hotel (<?php echo count($hotels); ?> hasil)</h2>
             <div class="sort-info">
-                Diurutkan berdasarkan: <strong><?php echo $sort_by == 'rating' ? 'Rating' : 'Harga'; ?></strong>
-                (<?php echo $sorted_result['swap_count']; ?> swap, <?php echo $sorted_result['passes']; ?> iterasi)
+                <div class="sort-label">
+                    Bubble Sort Algorithm
+                </div>
+                <div class="sort-stats">
+                    <?php echo $sorted_result['swap_count']; ?> swaps • 
+                    <?php echo $sorted_result['comparisons']; ?> comparisons • 
+                    <?php echo $sorted_result['passes']; ?> passes
+                </div>
             </div>
         </div>
     </div>
@@ -433,7 +557,7 @@ $hotels = $sorted_result['data'];
     <div class="container">
         <?php if (count($hotels) > 0): ?>
             <div class="hotel-grid">
-                <?php foreach ($hotels as $hotel): ?>
+                <?php foreach ($hotels as $index => $hotel): ?>
                     <div class="hotel-card">
                         <div class="hotel-image">
                             🏨
@@ -465,7 +589,10 @@ $hotels = $sorted_result['data'];
                                 </div>
                             <?php endif; ?>
                             
-                            <div class="hotel-price">
+                            <div class="hotel-price <?php echo ($sort_by == 'price' && $index < 3) ? 'highlight' : ''; ?>">
+                                <?php if ($sort_by == 'price' && $index < 3): ?>
+                                    💰 
+                                <?php endif; ?>
                                 Rp <?php echo number_format($hotel['price'], 0, ',', '.'); ?>
                                 <span>/ malam</span>
                             </div>
@@ -493,9 +620,9 @@ $hotels = $sorted_result['data'];
     <!-- FOOTER -->
     <div class="footer">
         <p><strong>pesenhotel.com</strong> - Website Pencarian Hotel di Kota Malang</p>
-        <p>Tugas Akhir Semester 1 Inform        atika | MAN 2 Kota Malang Kelas 11 D</p>
+        <p>Tugas Akhir Semester 1 Informatika | SMA Kelas 11 D</p>
         <p>Menggunakan algoritma <strong>Binary Search</strong> dan <strong>Bubble Sort</strong></p>
-        <p>Integrasi <a href="#">Google Maps API</a></p>
+        <p>serta Integrasi <strong>Google Maps</strong></p>
     </div>
 </body>
 </html>
